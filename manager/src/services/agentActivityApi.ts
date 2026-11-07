@@ -1,0 +1,31 @@
+import { apiBlob, apiRequest } from './apiClient';
+
+export type AgentActivityReport = {
+  agent: { id: string; name: string; employeeCode?: string; avatarUrl?: string; phone?: string; email: string; region?: string; currentStatus: string };
+  range: { from: string; to: string; days: number };
+  kpis: { currentStatus: string; punchIn?: string; punchOut?: string; workingMinutes: number; currentLocation?: { latitude: number; longitude: number; at?: string } | null; shopsVisited: number; uniqueShops: number; orders: number; totalSalesLkr: number; paymentCollectionsLkr: number; distanceKm: number };
+  serverNow:string;timezone:string;
+  status:{working:boolean;trackingState:string;lastGpsAt?:string;lastSyncAt?:string;onBreak:boolean};
+  route: { points: Array<{ latitude: number; longitude: number; capturedAt: string; accuracy?: number; speedKmH?: number }>; start?: { latitude: number; longitude: number; at: string } | null; end?: { latitude: number; longitude: number; at: string } | null;rawPointCount:number;retainedPointCount:number };
+  timeline: Array<{ id: string; at: string; type: string; title: string; detail?: string; shopId?: string; entityId?: string }>;
+  visits: Array<{ id: string; sequence: number; shopId: string; shopName: string; address: string;contactPerson?:string;phone?:string; arrivalAt: string; departureAt?: string; durationMinutes: number; latitude: number; longitude: number; accuracy?: number;checkoutLatitude?:number;checkoutLongitude?:number;checkoutAccuracy?:number; gpsVerified: boolean; distanceFromShopMeters?: number;allowedRadiusMeters:number;geofenceExceptionReason?:string;geofenceExceptionNote?:string;geofenceExceptionStatus?:string; notes?: string; orderCreated: boolean; shopImageAvailable: boolean; shopImageUrl?: string;images?:Array<{id:string;url:string;type:string}>;orders: Array<{ id: string; status: string; totalLkr: number;createdAt?:string; products: Array<{ id: string; name: string; sku: string; cases: number; totalLkr: number }> }>; invoices: Array<{ id: string; invoiceNumber: string; status: string; totalLkr: number; paidLkr: number;issuedAt?:string }>; payments: Array<{ id: string; amountLkr: number; method: string; reference?: string;paidAt?:string }>; salesLkr: number; collectedLkr: number;outstandingBalanceLkr:number;followUpRequired:boolean;visitStatus:string; paymentStatus: string }>;
+  visitCandidates: Array<{ shopId: string; shopName: string; enteredAt: string; lastSeenAt: string; durationMinutes: number; latitude: number; longitude: number; status: 'POSSIBLE_VISIT'; message: string }>;
+  sales: { orders: Array<{ id: string; shopName: string; status: string; totalLkr: number; createdAt: string }>; invoices: Array<{ id: string; invoiceNumber: string; status: string; totalLkr: number; paidLkr: number }>; payments: Array<{ id: string; amountLkr: number; method: string; reference?: string }> };
+  targets:{shops:number;salesLkr:number;collectionsLkr:number};
+  progress:{shopsPercent:number;salesPercent:number;collectionsPercent:number;routePercent:number};
+  routePlan:null|{id:string;date:string;territory?:string;startLabel?:string;startLatitude?:number;startLongitude?:number;plannedDistanceKm:number;status:string;stops:Array<{id:string;sequence:number;status:string;plannedArrivalTime?:string;shop:{id:string;name:string;address:string;city:string;phone:string;latitude?:number;longitude?:number;allowedVisitRadiusMeters?:number;outstandingBalanceLkr:number}}>};
+  routeComparison:{plannedShops:number;completedShops:number;missedShops:number;unplannedShops:number;plannedDistanceKm:number;actualDistanceKm:number;deviationKm:number;completionPercent:number};
+  quality:{gpsVerifiedVisits:number;averageVisitMinutes:number;productiveVisits:number;noSaleVisits:number;ordersPerVisit:number;collectionsPerVisit:number;followUpsRequired:number};
+  nextAction:null|{routeStopId:string;plannedArrivalTime?:string;shop:{id:string;name:string;address:string;city:string;phone:string;latitude?:number;longitude?:number;outstandingBalanceLkr:number}};
+  breaks:Array<{id:string;startedAt:string;endedAt?:string;durationMinutes:number;active:boolean}>;
+  performance: { daily: Array<{ date: string; worked: boolean; workingMinutes: number; visits: number; uniqueShops: number; orders: number; salesLkr: number; collectionsLkr: number; distanceKm: number; averageVisitMinutes: number }>; workingDays: number; attendance: { presentDays: number; lateDays: number; absentDays: number }; totalVisits: number; totalOrders: number; totalSalesLkr: number; collectionsLkr: number; distanceKm: number; averageVisitMinutes: number; averageShopsPerDay: number; targetAchievementPercent?: number | null; topShops: Array<{ shopId?: string; shopName: string; orders: number; salesLkr: number }>; bestSalesDay?: { date: string; salesLkr: number } | null; previousPeriodSalesLkr: number; salesTrendPercent: number };
+};
+
+const query = (from: string, to: string) => new URLSearchParams({ from, to }).toString();
+export const loadAgentActivity = (agentId: string, from: string, to: string) => apiRequest<AgentActivityReport>(`/api/v1/agents/${agentId}/activity?${query(from, to)}`);
+export const loadMyActivity = (from:string,to:string)=>apiRequest<AgentActivityReport>(`/api/v1/agents/me/activity?${query(from,to)}`);
+export const loadMyRouteReplay=(date:string,resolution=1000)=>apiRequest<{points:AgentActivityReport['route']['points']}>(`/api/v1/agents/me/activity/replay?${new URLSearchParams({date,resolution:String(resolution)})}`);
+export const loadMyVisitDetail=(visitId:string)=>apiRequest<Record<string,unknown>>(`/api/v1/agents/me/activity/visits/${visitId}`);
+export const requestActivityCorrection=(input:{visitId?:string;attendanceId?:string;requestedCheckOutAt?:string;reason:string})=>apiRequest('/api/v1/agents/me/activity/corrections',{method:'POST',body:JSON.stringify(input)});
+export const requestGeofenceException=(visitId:string,input:{reason:string;note:string})=>apiRequest(`/api/v1/shops/visits/${visitId}/geofence-exception`,{method:'POST',body:JSON.stringify(input)});
+export const exportAgentActivity = (agentId: string, format: 'pdf' | 'xlsx', from: string, to: string) => apiBlob(`/api/v1/agents/${agentId}/activity/export/${format}?${query(from, to)}`);

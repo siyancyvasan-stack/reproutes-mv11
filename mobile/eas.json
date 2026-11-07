@@ -1,0 +1,35 @@
+{
+  "cli": { "version": ">= 15.0.0", "appVersionSource": "remote" },
+  "build": {
+    "development": { "developmentClient": true, "distribution": "internal" },
+    "preview": { "distribution": "internal", "android": { "buildType": "apk" } },
+    "production-apk": {
+      "distribution": "internal",
+      "environment": "production",
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.reproutes.com",
+        "EXPO_PUBLIC_WEB_URL": "https://reproutes.com",
+        "EXPO_PUBLIC_TENANT_SLUG": "reproutes"
+      },
+      "android": { "buildType": "apk" }
+    },
+    "production": {
+      "autoIncrement": true,
+      "environment": "production",
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.reproutes.com",
+        "EXPO_PUBLIC_WEB_URL": "https://reproutes.com",
+        "EXPO_PUBLIC_TENANT_SLUG": "reproutes"
+      },
+      "android": { "buildType": "app-bundle" }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": { "track": "internal" },
+      "ios": { "ascAppId": "SET_IN_EAS_SECRET" }
+    }
+  }
+}

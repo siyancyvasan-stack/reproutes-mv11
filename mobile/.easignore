@@ -1,0 +1,14 @@
+node_modules/
+.expo/
+.env.local
+.env
+dist/
+*.apk
+*.aab
+android/.gradle/
+android/.kotlin/
+android/app/build/
+android/app/.cxx/
+android/build/
+.git/
+*.log

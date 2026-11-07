@@ -1,0 +1,16 @@
+# Hostinger Apache / LiteSpeed Reverse Proxy configuration for Node.js backend
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Socket.IO needs a WebSocket upgrade in production. Without this rule the
+  # sales phone stays in "Reconnecting" and the manager never receives live
+  # GPS events. Keep the polling fallback below for proxies without websocket
+  # support.
+  RewriteCond %{HTTP:Upgrade} websocket [NC]
+  RewriteCond %{HTTP:Connection} upgrade [NC]
+  RewriteRule ^socket\.io/(.*)$ ws://127.0.0.1:4000/socket.io/$1 [P,L]
+
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ http://127.0.0.1:4000/$1 [P,L]
+</IfModule>
