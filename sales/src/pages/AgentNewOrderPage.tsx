@@ -339,7 +339,7 @@ export const AgentNewOrderPage: React.FC = () => {
             <button
               type="submit"
               disabled={
-                isSubmitting || isLoadingProducts || products.length === 0
+                isSubmitting || isLoadingProducts
               }
               className="w-full py-3.5 rounded-xl text-sm font-bold text-white glass-button-primary flex items-center justify-center gap-2 cursor-pointer shadow-xl mt-2 disabled:cursor-not-allowed disabled:opacity-50"
             >

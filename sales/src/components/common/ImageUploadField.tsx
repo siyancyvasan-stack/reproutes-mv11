@@ -10,8 +10,9 @@ export const validateImage = (file: File) => {
   return '';
 };
 
-export const ImageUploadField = ({ file, currentUrl, onChange, label = 'Product Image (Optional)', disabled = false, tone = 'default' }: {
+export const ImageUploadField = ({ file, currentUrl, onChange, label = 'Product Image (Optional)', disabled = false, tone = 'default', capture }: {
   file?: File; currentUrl?: string; onChange: (file?: File) => void; label?: string; disabled?: boolean; tone?: 'default' | 'light' | 'dark';
+  capture?: boolean | 'user' | 'environment';
   key?: React.Key;
 }) => {
   const [error, setError] = useState('');
@@ -28,7 +29,7 @@ export const ImageUploadField = ({ file, currentUrl, onChange, label = 'Product 
       <div className="min-w-0 flex-1">
         <label className={`image-upload-trigger inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold ${isLight ? 'border-cyan-300 bg-white text-cyan-700' : isDark ? 'border-cyan-400 bg-slate-900 text-cyan-300' : 'border-cyan-500/30 text-cyan-300'}`}>
           <ImagePlus className="h-4 w-4"/>{file || currentUrl ? 'Replace Image' : 'Choose Image'}
-          <input disabled={disabled} type="file" className="sr-only" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={(event) => { const next = event.target.files?.[0]; if (!next) return; const message = validateImage(next); setError(message); if (!message) onChange(next); event.target.value = ''; }}/>
+          <input disabled={disabled} type="file" capture={capture === true ? 'environment' : capture || undefined} className="sr-only" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={(event) => { const next = event.target.files?.[0]; if (!next) return; const message = validateImage(next); setError(message); if (!message) onChange(next); event.target.value = ''; }}/>
         </label>
         {(file || currentUrl) && <button disabled={disabled} type="button" onClick={() => { setError(''); onChange(undefined); }} className={`ml-2 inline-flex items-center gap-1 px-2 py-2 text-xs font-bold ${isLight ? 'text-rose-700' : 'text-rose-400'}`}><Trash2 className="h-3.5 w-3.5"/>Remove</button>}
         <p className={`image-upload-hint mt-1 text-[10px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>JPG, JPEG, PNG or WEBP · maximum 5 MB</p>

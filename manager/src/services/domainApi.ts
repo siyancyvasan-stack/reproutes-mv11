@@ -244,6 +244,9 @@ export const createShop = async (input: {
   city: string;
   routeGroup?: string;
   outstandingBalanceLkr?: number;
+  paymentMethod?: 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'CREDIT';
+  paymentTerms?: string;
+  creditLimitLkr?: number;
 }) => toShop(await apiRequest<any>('/api/v1/shops', {
   method: 'POST',
   body: JSON.stringify(input),

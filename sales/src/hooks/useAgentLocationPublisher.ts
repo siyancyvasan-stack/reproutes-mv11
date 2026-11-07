@@ -24,8 +24,10 @@ export type LocationPublisherState =
   | 'tracking-active'
   | 'error';
 
-const MINIMUM_UPLOAD_INTERVAL_MS = 30_000;
-const MINIMUM_MOVEMENT_METERS = 10;
+// Keep the manager map live while the agent is checked in. GPS callbacks are
+// still paced to avoid flooding the socket when a device emits fixes rapidly.
+const MINIMUM_UPLOAD_INTERVAL_MS = 5_000;
+const MINIMUM_MOVEMENT_METERS = 0;
 const MAXIMUM_UPLOAD_ACCURACY_METERS = 500;
 let activeImmediateUploader: ((point: QueuedGpsPoint) => Promise<void>) | undefined;
 

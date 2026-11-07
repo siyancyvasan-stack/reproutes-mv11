@@ -971,6 +971,28 @@
   opacity: 0.35;
 }
 
+/* Live map fullscreen details stay on top of the map and never resize it. */
+.live-tracking-details-overlay {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 35;
+  max-height: min(52dvh, 520px);
+  overflow-y: auto;
+  margin: 0;
+  box-shadow: 0 20px 55px rgba(15, 23, 42, .28);
+}
+
+@media (max-width: 640px) {
+  .live-tracking-details-overlay {
+    left: .5rem;
+    right: .5rem;
+    bottom: .5rem;
+    max-height: 58dvh;
+  }
+}
+
 /* Agent Activity — scoped high-contrast production theme */
 .agent-activity-page .glass-panel {
   border: 1px solid rgb(219 234 254) !important;

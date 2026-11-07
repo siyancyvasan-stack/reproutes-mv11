@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AgentLayout } from "../components/layout/AgentLayout";
 import { GlassCard } from "../components/common/GlassCard";
 import { useAuth } from "../context/AuthContext";
@@ -6,10 +6,19 @@ import { Truck, Navigation, Award, Camera } from "lucide-react";
 import { PasskeySettings } from "../components/auth/PasskeySettings";
 import { ProfileAvatar } from "../components/common/ProfileAvatar";
 import { AgentAvatarModal } from "../components/common/AgentAvatarModal";
+import { apiRequest } from "../services/apiClient";
 
 export const AgentProfilePage: React.FC = () => {
   const { user, logout, updateUser } = useAuth();
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [vehicleNo, setVehicleNo] = useState("Not assigned");
+
+  useEffect(() => {
+    if (!user?.id) return;
+    void apiRequest<{ agentProfile?: { vehicleNo?: string } }>(`/api/v1/agents/${user.id}`)
+      .then((profile) => setVehicleNo(profile.agentProfile?.vehicleNo?.trim() || "Not assigned"))
+      .catch(() => setVehicleNo("Not assigned"));
+  }, [user?.id]);
 
   return (
     <AgentLayout>
@@ -53,7 +62,7 @@ export const AgentProfilePage: React.FC = () => {
                 Vehicle Registration:
               </span>
               <span className="font-bold text-white">
-                WP CAF-3321 (Motorcycle)
+                {vehicleNo}
               </span>
             </div>
 

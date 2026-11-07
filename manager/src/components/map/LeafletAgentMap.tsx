@@ -107,7 +107,18 @@ export const LeafletAgentMap = ({ agents, selectedAgentId, onSelectAgent }: Leaf
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(map);
     mapRef.current = map;
+    const resize = () => window.setTimeout(() => map.invalidateSize({ animate: false }), 40);
+    const recenter = () => {
+      const selected = agents.find((agent) => agent.id === selectedAgentId);
+      if (selected && hasPosition(selected)) map.setView([selected.coordinates.lat, selected.coordinates.lng], Math.max(map.getZoom(), 15), { animate: true });
+      else if (markersRef.current.size) map.fitBounds(L.latLngBounds(Array.from(markersRef.current.values()).map((marker) => marker.getLatLng())), { padding: [50, 50], animate: true });
+    };
+    window.addEventListener('resize', resize);
+    window.addEventListener('reproutes:map-recenter', recenter);
+    resize();
     return () => {
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('reproutes:map-recenter', recenter);
       // Leaflet's zoom transition and our marker interpolation both schedule
       // animation frames. Stop them before removing panes from the DOM.
       map.stop();
@@ -125,6 +136,13 @@ export const LeafletAgentMap = ({ agents, selectedAgentId, onSelectAgent }: Leaf
       fittedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const frame = window.requestAnimationFrame(() => map.invalidateSize({ animate: false }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [selectedAgentId]);
 
   useEffect(() => {
     const map = mapRef.current;

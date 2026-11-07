@@ -34,6 +34,7 @@ type ShopForm = {
   longitude: string;
   retailerType: string;
   creditLimitLkr: string;
+  paymentMethod: "CASH" | "CREDIT" | "CARD" | "BANK_TRANSFER";
   paymentTerms: string;
   active: "true" | "false";
   notes: string;
@@ -53,6 +54,7 @@ const blankForm: ShopForm = {
   longitude: "",
   retailerType: "Grocery",
   creditLimitLkr: "0",
+  paymentMethod: "CASH",
   paymentTerms: "Cash",
   active: "true",
   notes: "",
@@ -188,7 +190,7 @@ export const ShopCreatePage: React.FC = () => {
           requiredProducts: [],
           productCategories: [],
           preferredVisitDays: [],
-          paymentMethod: "CASH",
+          paymentMethod: form.paymentMethod,
         }),
       });
       setGeneratedShopId(createdShop.retailerCode ?? "");
@@ -513,6 +515,7 @@ export const ShopCreatePage: React.FC = () => {
               onChange={setShopPhoto}
               disabled={saving}
               tone="dark"
+              capture="environment"
             />
           </GlassCard>
 
@@ -541,14 +544,16 @@ export const ShopCreatePage: React.FC = () => {
                 />
               </Field>
 
+              <Field label="Payment Method">
+                <select value={form.paymentMethod} onChange={setField("paymentMethod")} className="input w-full">
+                  <option value="CASH">Cash</option>
+                  <option value="CREDIT">Credit</option>
+                  <option value="CARD">Card</option>
+                  <option value="BANK_TRANSFER">Bank Transfer</option>
+                </select>
+              </Field>
               <Field label="Payment Terms">
-                <input
-                  type="text"
-                  placeholder="e.g. Cash, Net 14, Net 30"
-                  value={form.paymentTerms}
-                  onChange={setField("paymentTerms")}
-                  className="input w-full"
-                />
+                <input type="text" placeholder="e.g. Due on delivery, 30 days" value={form.paymentTerms} onChange={setField("paymentTerms")} className="input w-full" />
               </Field>
 
               <div className="sm:col-span-2">

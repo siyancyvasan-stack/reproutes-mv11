@@ -11,6 +11,11 @@ import {
   ShieldCheck,
   CheckCircle2,
   Trash2,
+  Maximize2,
+  Minimize2,
+  LocateFixed,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useLiveAgentTracking } from "../hooks/useLiveAgentTracking";
 import { deleteAgent, loadAgents } from "../services/domainApi";
@@ -41,6 +46,8 @@ export const ManagerLiveTrackingPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [pendingDelete, setPendingDelete] = useState<Agent | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [fullScreen, setFullScreen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(true);
   const { showToast } = useToast();
   const selectedAgent =
     agents.find((agent) => agent.id === selectedAgentId) ?? null;
@@ -94,8 +101,9 @@ export const ManagerLiveTrackingPage: React.FC = () => {
   );
 
   return (
-    <ManagerLayout>
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-2">
+    <ManagerLayout hideChrome={fullScreen} wide>
+      <div className={`live-tracking-page ${fullScreen ? "live-tracking-fullscreen" : ""}`}>
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-2 live-tracking-heading">
         <div>
           <h2 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
             <Navigation className="w-6 h-6 text-cyan-400" />
@@ -108,6 +116,10 @@ export const ManagerLiveTrackingPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3 w-full lg:w-auto">
+          <button type="button" onClick={() => { setFullScreen((value) => !value); setDetailsOpen(false); }} className="glass-button-primary inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-white">
+            {fullScreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            {fullScreen ? "Exit Full Screen" : "Full Screen Map"}
+          </button>
           <div className="relative flex-1 lg:w-64">
             <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
             <input
@@ -121,9 +133,9 @@ export const ManagerLiveTrackingPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 live-tracking-layout">
         {/* Agent Selector List (4 Cols) */}
-        <div className="lg:col-span-4 space-y-3">
+        {!fullScreen && <div className="lg:col-span-4 space-y-3">
           <GlassCard className="p-4 space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Agent Directory ({filteredAgents.length})
@@ -211,21 +223,27 @@ export const ManagerLiveTrackingPage: React.FC = () => {
               ))}
             </div>
           </GlassCard>
-        </div>
+        </div>}
 
         {/* Live Vector Map Stage (8 Cols) */}
-        <div className="lg:col-span-8 flex flex-col gap-4">
+        <div className={`${fullScreen ? "lg:col-span-12" : "lg:col-span-8"} relative flex flex-col gap-4 live-tracking-map-column`}>
           <InteractiveCityMap
             agents={agents}
             selectedAgentId={selectedAgent?.id}
             onSelectAgent={handleAgentSelect}
-            heightClass="h-[520px]"
+            heightClass={fullScreen ? "h-[calc(100dvh-2rem)] min-h-[520px]" : "h-[min(70dvh,680px)] min-h-[520px]"}
             connectionState={connectionState}
           />
 
+          {fullScreen && <div className="pointer-events-none absolute inset-x-0 top-4 z-30 flex justify-end gap-2 px-4">
+            <button type="button" onClick={() => { setFullScreen(false); setDetailsOpen(false); }} className="pointer-events-auto inline-flex items-center gap-2 rounded-xl bg-slate-950/85 px-3 py-2 text-xs font-bold text-white shadow-xl backdrop-blur"><Minimize2 className="h-4 w-4" /> Exit Full Screen</button>
+            <button type="button" onClick={() => window.dispatchEvent(new Event("reproutes:map-recenter"))} className="pointer-events-auto inline-flex items-center gap-2 rounded-xl bg-white/90 px-3 py-2 text-xs font-bold text-slate-800 shadow-xl backdrop-blur"><LocateFixed className="h-4 w-4" /> Recenter</button>
+            {selectedAgent && <button type="button" onClick={() => setDetailsOpen((value) => !value)} className="pointer-events-auto inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-3 py-2 text-xs font-bold text-slate-950 shadow-xl"><ChevronUp className={`h-4 w-4 transition-transform ${detailsOpen ? "rotate-180" : ""}`} /> Details</button>}
+          </div>}
+
           {/* Selected Agent Route Breakdown */}
-          {selectedAgent && (
-            <GlassCard className="p-6">
+          {selectedAgent && detailsOpen && (
+            <GlassCard className={`p-6 live-tracking-details ${fullScreen ? "live-tracking-details-overlay" : ""}`}>
               <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-cyan-400" />
                 <span>Assigned Shop Route Visits - {selectedAgent.name}</span>
@@ -295,6 +313,9 @@ export const ManagerLiveTrackingPage: React.FC = () => {
           )}
         </div>
       </div>
+      {!fullScreen && selectedAgent && <button type="button" onClick={() => setDetailsOpen((value) => !value)} className="fixed bottom-4 right-4 z-40 inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-xs font-bold text-white shadow-xl lg:hidden">
+        {detailsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />} Agent details
+      </button>}
       <ConfirmationDialog
         isOpen={Boolean(pendingDelete)}
         onClose={() => !deleting && setPendingDelete(null)}
@@ -305,6 +326,7 @@ export const ManagerLiveTrackingPage: React.FC = () => {
         busy={deleting}
         destructive
       />
+      </div>
     </ManagerLayout>
   );
 };

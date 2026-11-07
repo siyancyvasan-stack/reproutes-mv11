@@ -43,6 +43,9 @@ const emptyShop = {
   city: "",
   routeGroup: "",
   outstandingBalanceLkr: "",
+  paymentMethod: "CASH",
+  paymentTerms: "Due on delivery",
+  creditLimitLkr: "",
 };
 
 export const ManagerOrdersPage: React.FC = () => {
@@ -189,6 +192,9 @@ export const ManagerOrdersPage: React.FC = () => {
         city: shopForm.city.trim(),
         routeGroup: shopForm.routeGroup.trim(),
         outstandingBalanceLkr: Number(shopForm.outstandingBalanceLkr || 0),
+        paymentMethod: shopForm.paymentMethod as "CASH" | "CARD" | "BANK_TRANSFER" | "CREDIT",
+        paymentTerms: shopForm.paymentTerms.trim() || undefined,
+        creditLimitLkr: Number(shopForm.creditLimitLkr || 0),
       });
       await uploadShopImage(created.id, shopImage, "FRONT", true);
       const [, refreshedOrders] = await Promise.allSettled([
@@ -681,6 +687,38 @@ export const ManagerOrdersPage: React.FC = () => {
                     outstandingBalanceLkr: event.target.value,
                   })
                 }
+                className={fieldClass}
+              />
+            </Field>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Field label="Preferred Payment Method">
+              <select
+                value={shopForm.paymentMethod}
+                onChange={(event) => setShopForm({ ...shopForm, paymentMethod: event.target.value })}
+                className={fieldClass}
+              >
+                <option value="CASH">Cash</option>
+                <option value="CREDIT">Credit</option>
+                <option value="CARD">Card</option>
+                <option value="BANK_TRANSFER">Bank Transfer</option>
+              </select>
+            </Field>
+            <Field label="Payment Terms">
+              <input
+                value={shopForm.paymentTerms}
+                onChange={(event) => setShopForm({ ...shopForm, paymentTerms: event.target.value })}
+                placeholder="e.g. 30 days"
+                className={fieldClass}
+              />
+            </Field>
+            <Field label="Credit Limit (LKR)">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={shopForm.creditLimitLkr}
+                onChange={(event) => setShopForm({ ...shopForm, creditLimitLkr: event.target.value })}
                 className={fieldClass}
               />
             </Field>

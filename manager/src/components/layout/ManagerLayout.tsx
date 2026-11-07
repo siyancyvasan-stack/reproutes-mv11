@@ -7,9 +7,10 @@ import { FloatingWhatsAppContact } from '../contacts/FloatingWhatsAppContact';
 interface ManagerLayoutProps {
   children: React.ReactNode;
   wide?: boolean;
+  hideChrome?: boolean;
 }
 
-export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children, wide = false }) => {
+export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children, wide = false, hideChrome = false }) => {
   useCriticalSafetyAlerts();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -22,23 +23,23 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children, wide = f
       <div className="fixed inset-0 bg-grid-pattern opacity-40 pointer-events-none z-0" />
 
       {/* Sidebar */}
-      <Sidebar
+      {!hideChrome && <Sidebar
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed(!collapsed)}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
-      />
+      />}
 
       {/* Header */}
-      <ManagerHeader
+      {!hideChrome && <ManagerHeader
         collapsed={collapsed}
         onToggleMobileSidebar={() => setMobileOpen(true)}
-      />
+      />}
 
       {/* Main Content Body */}
       <main
         className={`flex-1 p-[var(--tf-space-page)] transition-all duration-300 relative z-10 ${
-          collapsed ? 'md:ml-20' : 'md:ml-64'
+          hideChrome ? '' : (collapsed ? 'md:ml-20' : 'md:ml-64')
         }`}
       >
         <div className={`${wide ? 'max-w-[1760px]' : 'max-w-[1600px]'} mx-auto min-w-0 space-y-[var(--tf-space-section)]`}>{children}</div>
