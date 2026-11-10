@@ -278,9 +278,12 @@ export const LeafletAgentMap = ({ agents, selectedAgentId, onSelectAgent }: Leaf
       ? [...travelledPath, currentPoint]
       : travelledPath;
     if (routePath.length > 1) {
+      L.polyline(routePath.map((point) => [point.lat, point.lng]), {
+        color: '#0f172a', opacity: .9, weight: 9, lineCap: 'round', lineJoin: 'round',
+      }).addTo(map);
       travelledRouteRef.current = L.polyline(
         routePath.map((point) => [point.lat, point.lng]),
-        { color: '#111827', opacity: .9, weight: 5 },
+        { color: '#2563eb', opacity: 1, weight: 5, lineCap: 'round', lineJoin: 'round' },
       ).addTo(map);
     }
     plannedStops.filter((point) => point.label).forEach((point, index) => {
@@ -330,9 +333,12 @@ export const LeafletAgentMap = ({ agents, selectedAgentId, onSelectAgent }: Leaf
       .then((route) => {
             if (controller.signal.aborted || route.path.length < 2) return;
             plannedRouteRef.current?.remove();
+            L.polyline(route.path.map((point) => [point.lat, point.lng]), {
+              color: '#0f172a', opacity: .9, weight: 12, lineCap: 'round', lineJoin: 'round',
+            }).addTo(map);
             plannedRouteRef.current = L.polyline(
               route.path.map((point) => [point.lat, point.lng]),
-              { color: '#2563eb', opacity: 1, weight: 8 },
+              { color: '#3b82f6', opacity: 1, weight: 7, lineCap: 'round', lineJoin: 'round' },
             )
               .addTo(map)
               .bindTooltip(`${route.distanceKm} km · ${route.etaMinutes} min`, {

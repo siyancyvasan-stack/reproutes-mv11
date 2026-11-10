@@ -239,10 +239,10 @@ export const ManagerOrdersPage: React.FC = () => {
           <ExportButton
             dataset="orders"
             pdf
-            formats={["csv", "pdf"]}
+            formats={["csv", "xlsx", "pdf"]}
             disabled={filteredOrders.length === 0}
             onExport={(format) =>
-              downloadOrders(filteredOrders, format as "csv" | "pdf")
+              downloadOrders(filteredOrders, format as "csv" | "xlsx" | "pdf")
             }
           />
           <button

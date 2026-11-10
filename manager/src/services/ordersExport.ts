@@ -1,6 +1,6 @@
 import type { Order } from '../types';
 
-export type OrderExportFormat = 'csv' | 'pdf';
+export type OrderExportFormat = 'csv' | 'xlsx' | 'pdf';
 
 const fileDate = () => new Date().toISOString().slice(0, 10);
 
@@ -27,6 +27,14 @@ const exportCsv = (orders: Order[]) => {
   const rows = orders.map((order) => [order.id, order.date, order.time, order.agentName, order.shopName, order.paymentTerm, order.casesCount, order.totalAmountLkr, order.status]);
   const content = `\uFEFF${[headers, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n')}\r\n`;
   saveBlob(new Blob([content], { type: 'text/csv;charset=utf-8' }), `Reproutes_Orders_${fileDate()}.csv`);
+};
+
+const exportExcel = (orders: Order[]) => {
+  const headers = ['Order ID', 'Date', 'Time', 'Agent', 'Shop', 'Payment', 'Cases', 'Total LKR', 'Status'];
+  const rows = orders.map((order) => [order.id, order.date, order.time, order.agentName, order.shopName, order.paymentTerm, order.casesCount, order.totalAmountLkr, order.status]);
+  const cell = (value: string | number) => `<td>${String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')}</td>`;
+  const html = `<table><thead><tr>${headers.map((header) => `<th>${header}</th>`).join('')}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map(cell).join('')}</tr>`).join('')}</tbody></table>`;
+  saveBlob(new Blob([`<html><meta charset="utf-8"><body>${html}</body></html>`], { type: 'application/vnd.ms-excel' }), `Reproutes_Orders_${fileDate()}.xls`);
 };
 
 const pdfText = (value: string) => value
@@ -86,6 +94,7 @@ const buildPdf = (orders: Order[]) => buildTextPdf([
 export const downloadOrders = (orders: Order[], format: OrderExportFormat) => {
   if (!orders.length) throw new Error('No orders are available for the selected filters.');
   if (format === 'csv') exportCsv(orders);
+  else if (format === 'xlsx') exportExcel(orders);
   else saveBlob(buildPdf(orders), `Reproutes_Orders_${fileDate()}.pdf`);
 };
 

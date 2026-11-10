@@ -33,6 +33,7 @@ interface InteractiveCityMapProps {
   onSelectAgent?: (agent: Agent) => void;
   heightClass?: string;
   connectionState?: TrackingConnectionState;
+  showSelectedDetails?: boolean;
 }
 
 const isValidPosition = (agent: Agent) =>
@@ -128,6 +129,7 @@ export const InteractiveCityMap: React.FC<InteractiveCityMapProps> = ({
   onSelectAgent,
   heightClass = 'h-[500px]',
   connectionState = 'offline',
+  showSelectedDetails = true,
 }) => {
   const apiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim();
   const useGoogleMaps = false;
@@ -621,7 +623,7 @@ export const InteractiveCityMap: React.FC<InteractiveCityMapProps> = ({
           )}
       </div>
 
-      {selectedAgent && (
+      {selectedAgent && showSelectedDetails && (
         <div className="z-20 border-t border-slate-100 bg-white/95 p-4 text-slate-700 backdrop-blur-xl">
           {(selectedAgent.travelledPath?.length || selectedAgent.routeCoordinates.length) > 0 && <div className="mb-3 flex items-center gap-2 overflow-x-auto rounded-xl bg-violet-50/70 px-3 py-2 text-[11px] font-bold text-violet-700" aria-label="Travelled route">
             <Route className="h-3.5 w-3.5 shrink-0"/><span className="shrink-0">Start</span>{(selectedAgent.travelledPath?.length ? selectedAgent.travelledPath : selectedAgent.routeCoordinates).filter((point) => point.label).map((point, index) => <React.Fragment key={`${point.lat}-${point.lng}-${index}`}><span className="text-violet-300">→</span><span className="shrink-0">{point.label}</span></React.Fragment>)}<span className="text-violet-300">→</span><span className="shrink-0">Current location</span>

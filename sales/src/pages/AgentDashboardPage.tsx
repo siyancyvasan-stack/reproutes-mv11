@@ -324,11 +324,16 @@ export const AgentDashboardPage: React.FC = () => {
           locErr instanceof GpsError && locErr.code === "PERMISSION_DENIED"
             ? "denied"
             : "unavailable";
-        showToast(
-          "Location not available",
-          "Accessing portal without location permission. You can enable GPS anytime.",
-          "info",
-        );
+        if (!isCheckedIn) {
+          const message = locErr instanceof GpsError
+            ? locErr.message
+            : "Allow location permission and turn on GPS before punching in.";
+          setAttendanceError(`Punch in blocked: ${message}`);
+          showToast("GPS required", "Allow location permission and enable GPS before starting your shift.", "error");
+          setBiometricState("LOCATION_ERROR");
+          return;
+        }
+        showToast("Location unavailable", "Punch out will be saved, but the final GPS point could not be captured.", "info");
       }
 
       const gps = point
@@ -395,7 +400,14 @@ export const AgentDashboardPage: React.FC = () => {
           showToast("Offline punch-in saved", "Route tracking will sync when the connection returns.", "info");
         }
         if (point) {
-          await enqueueGpsPoint(point);
+          // Publish the first fix immediately so the manager map can start the
+          // agent's travelled route from the exact punch-in location.
+          try {
+            await uploadGpsPointImmediately(point);
+          } catch {
+            // Keep the point for retry if the live socket is still connecting.
+            await enqueueGpsPoint(point);
+          }
         }
         setIsCheckedIn(true);
         setBiometricState("SHIFT_STARTED");

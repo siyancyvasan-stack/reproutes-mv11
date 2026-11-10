@@ -16,6 +16,8 @@ import {
   LocateFixed,
   ChevronDown,
   ChevronUp,
+  Menu,
+  X,
 } from "lucide-react";
 import { useLiveAgentTracking } from "../hooks/useLiveAgentTracking";
 import { deleteAgent, loadAgents } from "../services/domainApi";
@@ -47,7 +49,8 @@ export const ManagerLiveTrackingPage: React.FC = () => {
   const [pendingDelete, setPendingDelete] = useState<Agent | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [fullScreen, setFullScreen] = useState(false);
-  const [detailsOpen, setDetailsOpen] = useState(true);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [agentPanelOpen, setAgentPanelOpen] = useState(false);
   const { showToast } = useToast();
   const selectedAgent =
     agents.find((agent) => agent.id === selectedAgentId) ?? null;
@@ -69,6 +72,7 @@ export const ManagerLiveTrackingPage: React.FC = () => {
 
   const handleAgentSelect = (agent: Agent) => {
     setSelectedAgentId(agent.id);
+    setDetailsOpen(true);
   };
 
   const handleDeleteAgent = async () => {
@@ -135,7 +139,7 @@ export const ManagerLiveTrackingPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 live-tracking-layout">
         {/* Agent Selector List (4 Cols) */}
-        {!fullScreen && <div className="lg:col-span-4 space-y-3">
+        {!fullScreen && <div className="lg:col-span-3 space-y-3">
           <GlassCard className="p-4 space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Agent Directory ({filteredAgents.length})
@@ -226,19 +230,26 @@ export const ManagerLiveTrackingPage: React.FC = () => {
         </div>}
 
         {/* Live Vector Map Stage (8 Cols) */}
-        <div className={`${fullScreen ? "lg:col-span-12" : "lg:col-span-8"} relative flex flex-col gap-4 live-tracking-map-column`}>
+        <div className={`${fullScreen ? "lg:col-span-12" : "lg:col-span-9"} relative flex flex-col gap-4 live-tracking-map-column`}>
           <InteractiveCityMap
             agents={agents}
             selectedAgentId={selectedAgent?.id}
             onSelectAgent={handleAgentSelect}
             heightClass={fullScreen ? "h-[calc(100dvh-2rem)] min-h-[520px]" : "h-[min(70dvh,680px)] min-h-[520px]"}
             connectionState={connectionState}
+            showSelectedDetails={detailsOpen}
           />
 
-          {fullScreen && <div className="pointer-events-none absolute inset-x-0 top-4 z-30 flex justify-end gap-2 px-4">
+          {fullScreen && <div className="pointer-events-none absolute inset-x-0 top-4 z-30 flex justify-between gap-2 px-4">
+            <button type="button" onClick={() => setAgentPanelOpen((value) => !value)} className="pointer-events-auto inline-flex items-center gap-2 rounded-xl bg-slate-950/85 px-3 py-2 text-xs font-bold text-white shadow-xl backdrop-blur"><Menu className="h-4 w-4" /> Agents</button>
             <button type="button" onClick={() => { setFullScreen(false); setDetailsOpen(false); }} className="pointer-events-auto inline-flex items-center gap-2 rounded-xl bg-slate-950/85 px-3 py-2 text-xs font-bold text-white shadow-xl backdrop-blur"><Minimize2 className="h-4 w-4" /> Exit Full Screen</button>
             <button type="button" onClick={() => window.dispatchEvent(new Event("reproutes:map-recenter"))} className="pointer-events-auto inline-flex items-center gap-2 rounded-xl bg-white/90 px-3 py-2 text-xs font-bold text-slate-800 shadow-xl backdrop-blur"><LocateFixed className="h-4 w-4" /> Recenter</button>
             {selectedAgent && <button type="button" onClick={() => setDetailsOpen((value) => !value)} className="pointer-events-auto inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-3 py-2 text-xs font-bold text-slate-950 shadow-xl"><ChevronUp className={`h-4 w-4 transition-transform ${detailsOpen ? "rotate-180" : ""}`} /> Details</button>}
+          </div>}
+
+          {fullScreen && agentPanelOpen && <div className="absolute left-4 top-16 z-40 w-[min(360px,calc(100%-2rem))] min-w-[260px] max-w-[70vw] resize-x overflow-auto rounded-2xl border border-white/20 bg-slate-950/95 p-3 shadow-2xl backdrop-blur-xl" title="Drag the bottom-right corner to resize">
+            <div className="mb-2 flex items-center justify-between px-1"><span className="text-xs font-bold uppercase tracking-wider text-slate-300">Sales Agents ({filteredAgents.length})</span><button type="button" onClick={() => setAgentPanelOpen(false)} className="rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white" aria-label="Close agent list"><X className="h-4 w-4" /></button></div>
+            <div className="max-h-[60vh] space-y-2 overflow-y-auto">{filteredAgents.map((agent) => <button key={agent.id} type="button" onClick={() => { handleAgentSelect(agent); setAgentPanelOpen(false); setDetailsOpen(true); }} className={`w-full rounded-xl border p-3 text-left transition ${selectedAgent?.id === agent.id ? "border-cyan-400 bg-cyan-500/15" : "border-slate-700 bg-slate-900/80 hover:border-slate-500"}`}><div className="flex items-center gap-3"><ProfileAvatar src={agent.avatar} name={agent.name} className="h-9 w-9 rounded-full object-cover" /><span className="min-w-0 flex-1"><span className="block truncate text-xs font-bold text-white">{agent.name}</span><span className="block truncate text-[10px] text-slate-400">{agent.vehicleNo || "No vehicle assigned"} · {agent.currentLocation}</span></span><Badge status={agent.presenceStatus ?? "OFFLINE"} /></div></button>)}</div>
           </div>}
 
           {/* Selected Agent Route Breakdown */}

@@ -250,9 +250,10 @@ export const LeafletAgentMap = ({ agents, selectedAgentId, onSelectAgent }: Leaf
 
     const travelledPath = (selected.travelledPath?.length ? selected.travelledPath : selected.routeCoordinates).filter(isValidPoint);
     if (travelledPath.length > 1) {
+      L.polyline(travelledPath.map((point) => [point.lat, point.lng]), { color: '#0f172a', opacity: .9, weight: 9, lineCap: 'round', lineJoin: 'round' }).addTo(map);
       travelledRouteRef.current = L.polyline(
         travelledPath.map((point) => [point.lat, point.lng]),
-        { color: '#7c3aed', opacity: .82, weight: 5 },
+        { color: '#2563eb', opacity: 1, weight: 5, lineCap: 'round', lineJoin: 'round' },
       ).addTo(map);
     }
     travelledPath.filter((point) => point.label).forEach((point, index) => {

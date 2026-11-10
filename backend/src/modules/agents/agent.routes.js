@@ -88,6 +88,19 @@ agentRouter.post('/', authorize(Role.ADMIN, Role.MANAGER), async (req, res) => {
             });
         }
     }
+
+    const vehicleNo = input.vehicleNo?.trim().toUpperCase();
+    if (vehicleNo) {
+        const [existingVehicle] = await db.query(
+            'SELECT p.userId FROM AgentProfile p JOIN User u ON u.id = p.userId WHERE u.tenantId = ? AND UPPER(p.vehicleNo) = ? LIMIT 1',
+            [req.auth.tenantId, vehicleNo]
+        );
+        if (existingVehicle.length > 0) {
+            return res.status(409).json({
+                error: { code: 'VEHICLE_ALREADY_ASSIGNED', message: 'This vehicle number is already assigned to another sales agent.' },
+            });
+        }
+    }
     
     const generatedEmployeeCode = `TF-${Date.now().toString().slice(-6)}`;
     const temporaryPassword = input.password ?? 'Agent@123';
@@ -105,7 +118,7 @@ agentRouter.post('/', authorize(Role.ADMIN, Role.MANAGER), async (req, res) => {
         );
         await connection.query(
             'INSERT INTO AgentProfile (id, userId, routeAssigned, vehicleNo) VALUES (?, ?, ?, ?)',
-            [profileId, userId, input.routeAssigned ?? null, input.vehicleNo ?? null]
+            [profileId, userId, input.routeAssigned ?? null, vehicleNo ?? null]
         );
         await connection.commit();
     } catch (err) {
@@ -140,14 +153,22 @@ agentRouter.patch('/:id', authorize(Role.ADMIN, Role.MANAGER), async (req, res) 
     }).parse(req.body);
     const agentId = String(req.params.id);
     const email = input.email.trim().toLowerCase();
+    const vehicleNo = input.vehicleNo?.trim().toUpperCase();
     const [conflicts] = await db.query('SELECT id FROM User WHERE tenantId = ? AND (email = ? OR employeeCode = ?) AND id <> ? LIMIT 1', [req.auth.tenantId, email, input.employeeCode.trim(), agentId]);
     if (conflicts.length) return res.status(409).json({ error: { code: 'AGENT_DETAILS_ALREADY_EXISTS', message: 'Email or employee code is already used by another agent.' } });
+    if (vehicleNo) {
+        const [existingVehicle] = await db.query(
+            'SELECT p.userId FROM AgentProfile p JOIN User u ON u.id = p.userId WHERE u.tenantId = ? AND UPPER(p.vehicleNo) = ? AND p.userId <> ? LIMIT 1',
+            [req.auth.tenantId, vehicleNo, agentId]
+        );
+        if (existingVehicle.length > 0) return res.status(409).json({ error: { code: 'VEHICLE_ALREADY_ASSIGNED', message: 'This vehicle number is already assigned to another sales agent.' } });
+    }
     const connection = await db.getConnection();
     try {
         await connection.beginTransaction();
         const [result] = await connection.query('UPDATE User SET name = ?, email = ?, employeeCode = ?, phone = ? WHERE id = ? AND tenantId = ? AND role = ? AND status = ?', [input.name.trim(), email, input.employeeCode.trim(), input.phone?.trim() || null, agentId, req.auth.tenantId, Role.AGENT, 'ACTIVE']);
         if (!result.affectedRows) { await connection.rollback(); return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Active agent not found.' } }); }
-        await connection.query('UPDATE AgentProfile SET routeAssigned = ?, vehicleNo = ? WHERE userId = ?', [input.routeAssigned?.trim() || null, input.vehicleNo?.trim() || null, agentId]);
+        await connection.query('UPDATE AgentProfile SET routeAssigned = ?, vehicleNo = ? WHERE userId = ?', [input.routeAssigned?.trim() || null, vehicleNo || null, agentId]);
         if (input.password) await connection.query('UPDATE User SET passwordHash = ? WHERE id = ?', [await hashPassword(input.password), agentId]);
         await connection.commit();
     } catch (error) { await connection.rollback(); throw error; } finally { connection.release(); }

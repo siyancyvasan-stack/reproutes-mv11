@@ -22,9 +22,9 @@ export const DailyRouteMap = ({ route, visits,routePlan,replayPoint, onSelectVis
     instance.eachLayer((layer) => { if (!(layer instanceof L.TileLayer)) instance.removeLayer(layer); });
     const bounds: L.LatLngExpression[] = [];
     const path = route.points.filter(valid).map((point) => [point.latitude, point.longitude] as L.LatLngExpression);
-    if (path.length > 1) { L.polyline(path, { color: '#06b6d4', weight: 5, opacity: .85 }).addTo(instance); bounds.push(...path); }
+    if (path.length > 1) { L.polyline(path, { color: '#0f172a', weight: 9, opacity: .9, lineCap: 'round', lineJoin: 'round' }).addTo(instance); L.polyline(path, { color: '#2563eb', weight: 5, opacity: 1, lineCap: 'round', lineJoin: 'round' }).addTo(instance); bounds.push(...path); }
     const planned=[...(routePlan?.startLatitude!=null&&routePlan.startLongitude!=null?[[routePlan.startLatitude,routePlan.startLongitude] as L.LatLngExpression]:[]),...(routePlan?.stops??[]).filter(stop=>valid(stop.shop)).map(stop=>[stop.shop.latitude!,stop.shop.longitude!] as L.LatLngExpression)];
-    if(planned.length>1){L.polyline(planned,{color:'#a78bfa',weight:3,opacity:.65,dashArray:'6 9'}).addTo(instance);bounds.push(...planned)}
+    if(planned.length>1){L.polyline(planned,{color:'#0f172a',weight:7,opacity:.8,dashArray:'8 9',lineCap:'round'}).addTo(instance);L.polyline(planned,{color:'#60a5fa',weight:3,opacity:1,dashArray:'8 9',lineCap:'round'}).addTo(instance);bounds.push(...planned)}
     if (valid(route.start)) { const start = route.start!; L.marker([start.latitude, start.longitude], { icon: dot('#8b5cf6', 'S'), title: 'Start location' }).addTo(instance).bindPopup(`<strong>Start location</strong><br>${new Date(start.at).toLocaleTimeString()}`); bounds.push([start.latitude, start.longitude]); }
     visits.filter(valid).forEach((visit) => {
       const marker = L.marker([visit.latitude, visit.longitude], { icon: dot('#10b981', String(visit.sequence)), title: visit.shopName }).addTo(instance);

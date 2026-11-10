@@ -211,7 +211,7 @@ export const ManagerProductsPage: React.FC = () => {
       </div>
 
       <GlassCard className="p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        <div className="flex p-1 rounded-xl bg-slate-900/70 border border-slate-800">
+        <div className="inline-flex w-fit rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
           {(["products", "shops"] as CatalogTab[]).map((tab) => (
             <button
               key={tab}
@@ -220,14 +220,14 @@ export const ManagerProductsPage: React.FC = () => {
                 setActiveTab(tab);
                 setSearchQuery("");
               }}
-              className={`px-4 py-2 rounded-lg text-xs font-bold capitalize transition-all ${
+              className={`inline-flex min-h-10 min-w-[120px] items-center justify-center rounded-xl px-4 py-2 text-sm font-extrabold capitalize transition-all ${
                 activeTab === tab
-                  ? "bg-cyan-500 text-slate-950 shadow"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                  : "!bg-slate-100 !text-slate-800 hover:!bg-cyan-50 hover:!text-cyan-700"
               }`}
             >
-              {tab}{" "}
-              <span className="ml-1 opacity-70">
+              {tab === "products" ? "Products" : "Shops"}{" "}
+              <span className="ml-1 text-xs font-black opacity-80">
                 ({tab === "products" ? products.length : shops.length})
               </span>
             </button>
